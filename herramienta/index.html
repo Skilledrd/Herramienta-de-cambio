@@ -1,0 +1,208 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Billetes USD y DOP</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      background-color: #f4f4f4;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      gap: 5px;
+    }
+
+    .tabs button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background-color: #ddd;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .tabs button.active {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .ventana {
+      display: none;
+    }
+
+    .ventana.active {
+      display: block;
+    }
+
+    .input-group {
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[type="number"] {
+      width: 80px;
+      padding: 6px;
+    }
+
+    button#calcular {
+      width: 100%;
+      padding: 10px;
+      margin-top: 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      font-size: 1em;
+      cursor: pointer;
+    }
+
+    button#calcular:hover {
+      background-color: #218838;
+    }
+
+    #resultados {
+      margin-top: 20px;
+      font-size: 1.2em;
+      text-align: center;
+      color: green;
+    }
+
+    ul {
+      padding-left: 20px;
+    }
+
+    li {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Calculadora de Billetes</h2>
+
+  <!-- Pestañas -->
+  <div class="tabs">
+    <button class="tab-button active" onclick="mostrarVentana('usd', event)">Dólares (USD)</button>
+    <button class="tab-button" onclick="mostrarVentana('dop', event)">Pesos (DOP)</button>
+    <button class="tab-button" onclick="mostrarVentana('historial', event)">Historial</button>
+  </div>
+
+  <!-- Ventana USD -->
+  <div id="usd" class="ventana active">
+    <div class="input-group"><label>$1:</label><input type="number" id="usd1" min="0" value="0"></div>
+    <div class="input-group"><label>$5:</label><input type="number" id="usd5" min="0" value="0"></div>
+    <div class="input-group"><label>$10:</label><input type="number" id="usd10" min="0" value="0"></div>
+    <div class="input-group"><label>$20:</label><input type="number" id="usd20" min="0" value="0"></div>
+    <div class="input-group"><label>$50:</label><input type="number" id="usd50" min="0" value="0"></div>
+    <div class="input-group"><label>$100:</label><input type="number" id="usd100" min="0" value="0"></div>
+  </div>
+
+  <!-- Ventana DOP -->
+  <div id="dop" class="ventana">
+    <div class="input-group"><label>RD$50:</label><input type="number" id="dop50" min="0" value="0"></div>
+    <div class="input-group"><label>RD$100:</label><input type="number" id="dop100" min="0" value="0"></div>
+    <div class="input-group"><label>RD$200:</label><input type="number" id="dop200" min="0" value="0"></div>
+    <div class="input-group"><label>RD$500:</label><input type="number" id="dop500" min="0" value="0"></div>
+    <div class="input-group"><label>RD$1000:</label><input type="number" id="dop1000" min="0" value="0"></div>
+    <div class="input-group"><label>RD$2000:</label><input type="number" id="dop2000" min="0" value="0"></div>
+  </div>
+
+  <!-- Ventana Historial -->
+  <div id="historial" class="ventana">
+    <h3>Historial de Cálculos</h3>
+    <button onclick="borrarHistorial()" style="background-color: red; color: white; padding: 8px 12px; border: none; margin-bottom: 10px; cursor: pointer;">
+  Borrar historial
+</button>
+    <ul id="listaHistorial"></ul>
+  </div>
+
+  <button id="calcular" onclick="calcularTotales()">Calcular Totales</button>
+  <div id="resultados">Total USD: $0.00 | Total DOP: RD$0.00</div>
+
+  <script>
+    function mostrarVentana(id, event) {
+      document.querySelectorAll('.ventana').forEach(div => div.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      event.target.classList.add('active');
+      if (id === 'historial') {
+        cargarHistorial();
+      }
+    }
+
+    function calcularTotales() {
+      const usd = {
+        1: parseInt(document.getElementById('usd1').value) || 0,
+        5: parseInt(document.getElementById('usd5').value) || 0,
+        10: parseInt(document.getElementById('usd10').value) || 0,
+        20: parseInt(document.getElementById('usd20').value) || 0,
+        50: parseInt(document.getElementById('usd50').value) || 0,
+        100: parseInt(document.getElementById('usd100').value) || 0
+      };
+
+      const dop = {
+        50: parseInt(document.getElementById('dop50').value) || 0,
+        100: parseInt(document.getElementById('dop100').value) || 0,
+        200: parseInt(document.getElementById('dop200').value) || 0,
+        500: parseInt(document.getElementById('dop500').value) || 0,
+        1000: parseInt(document.getElementById('dop1000').value) || 0,
+        2000: parseInt(document.getElementById('dop2000').value) || 0
+      };
+
+      let totalUSD = 0;
+      let totalDOP = 0;
+
+      for (let valor in usd) {
+        totalUSD += usd[valor] * parseInt(valor);
+      }
+
+      for (let valor in dop) {
+        totalDOP += dop[valor] * parseInt(valor);
+      }
+
+      const resultado = `Total USD: $${totalUSD.toFixed(2)} | Total DOP: RD$${totalDOP.toFixed(2)}`;
+      document.getElementById('resultados').textContent = resultado;
+
+      const historial = JSON.parse(localStorage.getItem('historialCalculos') || '[]');
+      historial.push({ totalUSD, totalDOP, fecha: new Date().toLocaleString() });
+      localStorage.setItem('historialCalculos', JSON.stringify(historial));
+    }
+
+    function cargarHistorial() {
+      const historial = JSON.parse(localStorage.getItem('historialCalculos') || '[]');
+      const lista = document.getElementById('listaHistorial');
+      lista.innerHTML = "";
+      historial.reverse().forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `[${item.fecha}] USD: $${item.totalUSD.toFixed(2)} | DOP: RD$${item.totalDOP.toFixed(2)}`;
+        lista.appendChild(li);
+      });
+    }
+    function borrarHistorial() {
+  if (confirm("¿Estás seguro de que deseas borrar todo el historial?")) {
+    localStorage.removeItem('historialCalculos');
+    cargarHistorial(); // Para actualizar la lista en pantalla
+  }
+}
+  </script>
+
+</body>
+</html>
